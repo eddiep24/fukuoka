@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AnalyticsPage extends StatelessWidget {
   final String pigName;
@@ -8,24 +9,59 @@ class AnalyticsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('$pigName Analytics'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'Analytics for $pigName',
-                style: TextStyle(fontSize: 20.0),
-              ),
-              SizedBox(height: 20.0),
-              // Add your analytics widgets here
-            ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            title: Text('$pigName Analytics'),
           ),
-        ),
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance.collection('Data').doc(pigName).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  ),
+                );
+              } else if (!snapshot.hasData) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Text('No data available for $pigName.'),
+                  ),
+                );
+              } else {
+                var data = snapshot.data!.data() as Map<String, dynamic>?;
+
+                if (data != null && data.isNotEmpty) {
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        var entry = data.entries.toList()[index];
+                        return ListTile(
+                          title: Text('${entry.key}: ${entry.value}'),
+                        );
+                      },
+                      childCount: data.length,
+                    ),
+                  );
+                } else {
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Text('No data available for $pigName.'),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
     );
   }

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'menu.dart';
 
 
 
 void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -59,28 +60,29 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _login() {
-    // Reset error text
+void _login() async {
+  // Reset error text
+  setState(() {
+    _errorText = null;
+  });
+
+  // Implement login functionality here
+  String username = _usernameController.text;
+  String password = _passwordController.text;
+
+  if (username != "admin" || password != "admin") {
     setState(() {
-      _errorText = null;
+      _errorText = 'Incorrect username or password';
     });
+  } else {
+    // Navigate to the next screen or perform any other action on successful login
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MenuPage()),
+    );
 
-    // Implement login functionality here
-    String username = _usernameController.text;
-    String password = _passwordController.text;
-
-    if (username != "admin" || password != "admin") {
-      setState(() {
-        _errorText = 'Incorrect username or password';
-      });
-    } else {
-      // Navigate to the next screen or perform any other action on successful login
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MenuPage()),
-      );
-    }
   }
+}
 
   @override
   Widget build(BuildContext context) {
