@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'analytics.dart'; // Import the AnalyticsPage class
+import 'manage_users.dart'; // Import the ManageUsersPage class
 
 class MenuPage extends StatelessWidget {
   @override
@@ -9,6 +10,18 @@ class MenuPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Menu Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.manage_accounts),
+            onPressed: () {
+              // Navigate to the manage users page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ManageUsersPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<QuerySnapshot>(
         future: FirebaseFirestore.instance.collection('Data').get(),
