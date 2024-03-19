@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firebase_options.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'analytics.dart'; // Import the AnalyticsPage class
 import 'manage_users.dart'; // Import the ManageUsersPage class
 
 class MenuPage extends StatelessWidget {
+  final DatabaseReference _dbRef = FirebaseDatabase.instance.reference();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,55 +24,52 @@ class MenuPage extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance.collection('Data').get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+      body: _buildChildrenList(context),
+    );
+  }
+
+  Widget _buildChildrenList(BuildContext context) {
+    return FutureBuilder<DataSnapshot>(
+      future: _dbRef.once().then((event) => event.snapshot),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else {
+          Map<dynamic, dynamic>? data = snapshot.data!.value as Map<dynamic, dynamic>?;
+
+          if (data == null || data.isEmpty) {
             return Center(
               child: Text('No data available.'),
             );
-          } else {
-            List<String> menuItems = snapshot.data!.docs.map((doc) => doc.id).toList();
-
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(height: 10.0),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: menuItems.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                            title: Text(menuItems[index]),
-                            onTap: () {
-                              // Navigate to the analytics page
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => AnalyticsPage(pigName: menuItems[index])),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
           }
-        },
-      ),
+
+          List<String> childrenKeys = data.keys.cast<String>().toList();
+
+          return ListView.builder(
+            itemCount: childrenKeys.length,
+            itemBuilder: (context, index) {
+              final childKey = childrenKeys[index];
+              
+              return ListTile(
+                title: Text(childKey),
+                onTap: () {
+                  // Navigate to the page to display all data under this child
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnalyticsPage(childKey)),
+                  );
+                },
+              );
+            },
+          );
+        }
+      },
     );
   }
 }

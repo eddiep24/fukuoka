@@ -1,67 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'glucose_graph.dart';
 
 class AnalyticsPage extends StatelessWidget {
-  final String pigName;
+  final String childKey;
 
-  const AnalyticsPage({Key? key, required this.pigName}) : super(key: key);
+  AnalyticsPage(this.childKey);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text('$pigName Analytics'),
-          ),
-          StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance.collection('Data').doc(pigName).snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              } else if (snapshot.hasError) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  ),
-                );
-              } else if (!snapshot.hasData) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Text('No data available for $pigName.'),
-                  ),
-                );
-              } else {
-                var data = snapshot.data!.data() as Map<String, dynamic>?;
+      appBar: AppBar(
+        title: Text(childKey),
+      ),
+      body: FutureBuilder<DataSnapshot>(
+        future: FirebaseDatabase.instance.reference().child(childKey).once().then((event) => event.snapshot),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            Map<dynamic, dynamic>? data = snapshot.data!.value as Map<dynamic, dynamic>?;
 
-                if (data != null && data.isNotEmpty) {
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        var entry = data.entries.toList()[index];
-                        return ListTile(
-                          title: Text('${entry.key}: ${entry.value}'),
-                        );
-                      },
-                      childCount: data.length,
+            if (data == null || data.isEmpty) {
+              return Center(
+                child: Text('No data available.'),
+              );
+            }
+
+            // Extract glucose data from your fetched data
+            List<Map<String, dynamic>> glucoseData = data.entries
+                .where((entry) => entry.key.startsWith('00:')) // Assuming time keys start with '00:'
+                .map((entry) => {'time': entry.key, 'glucose': entry.value['voltage']})
+                .toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Voltage (V) vs Time(s)',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                } else {
-                  return SliverFillRemaining(
-                    child: Center(
-                      child: Text('No data available for $pigName.'),
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        ],
+                  ),
+                ),
+                AspectRatio(
+                  aspectRatio: 1.5, // Adjust the aspect ratio as needed
+                  child: GlucoseGraph(glucoseData),
+                ),
+                // Add other widgets below if needed
+              ],
+            );
+          }
+        },
       ),
     );
   }
