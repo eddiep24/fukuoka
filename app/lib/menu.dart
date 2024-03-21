@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'analytics.dart'; // Import the AnalyticsPage class
-import 'manage_users.dart'; // Import the ManageUsersPage class
+import 'analytics.dart';
+import 'manage_users.dart'; 
+
 
 class MenuPage extends StatelessWidget {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.reference();
@@ -9,6 +10,7 @@ class MenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: Color(0xe7e2bf), // Cream color
       appBar: AppBar(
         title: Text('Menu Page'),
         actions: [
@@ -56,15 +58,26 @@ class MenuPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final childKey = childrenKeys[index];
               
-              return ListTile(
-                title: Text(childKey),
-                onTap: () {
-                  // Navigate to the page to display all data under this child
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AnalyticsPage(childKey)),
-                  );
-                },
+              return Card(
+                elevation: 4,
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                // color: Color(0xFFD2B48C), // Light brown color
+                child: ListTile(
+                  title: Text(
+                    childKey,
+                    style: TextStyle(
+                      // color: Colors.white, // Text color for contrast
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onTap: () {
+                    // Navigate to the page to display all data under this child
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AnalyticsPage(childKey)),
+                    );
+                  },
+                ),
               );
             },
           );

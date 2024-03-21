@@ -19,93 +19,102 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-void _login() async {
-  // Reset error text
-  setState(() {
-    _errorText = null;
-  });
+  void _login() async {
+    // Reset error text
+    setState(() {
+      _errorText = null;
+    });
 
-  // Implement login functionality here
-  String username = _usernameController.text;
-  String password = _passwordController.text;
+    // Implement login functionality here
+    String username = _usernameController.text;
+    String password = _passwordController.text;
 
-  final usersCollection = FirebaseFirestore.instance.collection('users');
-  final querySnapshot = await usersCollection.get();
+    final usersCollection = FirebaseFirestore.instance.collection('users');
+    final querySnapshot = await usersCollection.get();
 
-  bool isLoggedIn = false;
+    bool isLoggedIn = false;
 
-  print("Printing all usernames and passwords from Firestore:");
+    for (var doc in querySnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final userEmail = data["email"];
+      final userPassword = data["password"];
 
-  for (var doc in querySnapshot.docs) {
-    final data = doc.data() as Map<String, dynamic>;
-    final userEmail = data["email"];
-    final userPassword = data["password"];
+      if (username == userEmail && password == userPassword) {
+        isLoggedIn = true;
+        break;
+      }
+    }
 
-    if (username == userEmail && password == userPassword) {
-      isLoggedIn = true;
-      break;
+    if (!isLoggedIn) {
+      setState(() {
+        _errorText = 'Incorrect username or password';
+      });
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MenuPage()),
+      );
     }
   }
 
-  if (!isLoggedIn) {
-    setState(() {
-      _errorText = 'Incorrect username or password';
-    });
-  } else {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MenuPage()),
-    );
-  }
-}
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Fukuoka'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    // backgroundColor: Color(0xFFFFF8E1), // Cream color
+    appBar: AppBar(
+      title: Text('Fukuoka'),
+    ),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Glucose Monitoring Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20.0),
+            TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20.0),
+            TextField(
+              controller: _passwordController,
+              obscureText: _isObscured, // Toggle password visibility based on state
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(_isObscured ? Icons.visibility : Icons.visibility_off),
+                  onPressed: _togglePasswordVisibility,
                 ),
               ),
-              SizedBox(height: 20.0),
-              TextField(
-                controller: _passwordController,
-                obscureText: _isObscured, // Toggle password visibility based on state
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(_isObscured ? Icons.visibility : Icons.visibility_off),
-                    onPressed: _togglePasswordVisibility,
-                  ),
-                ),
+            ),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: _login,
+              child: Text('Login'),
+            ),
+            SizedBox(height: 10.0),
+            if (_errorText != null)
+              Text(
+                _errorText!,
+                // style: TextStyle(color: Colors.red),
               ),
-              SizedBox(height: 20.0),
-              ElevatedButton(
-                onPressed: _login,
-                child: Text('Login'),
-              ),
-              SizedBox(height: 10.0),
-              if (_errorText != null)
-                Text(
-                  _errorText!,
-                  style: TextStyle(color: Colors.red),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }

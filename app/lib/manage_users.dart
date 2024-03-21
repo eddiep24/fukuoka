@@ -55,14 +55,18 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
               final userFirstName = userData['firstname'];
               final userLastName = userData['lastname'];
 
-              return ListTile(
-                title: Text('$userFirstName $userLastName'),
-                subtitle: Text(userEmail),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    _showDeleteConfirmationDialog(context, snapshot.data!.docs[index].id);
-                  },
+              return Card(
+                elevation: 4,
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  title: Text('$userFirstName $userLastName'),
+                  subtitle: Text(userEmail),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      _showDeleteConfirmationDialog(context, snapshot.data!.docs[index].id);
+                    },
+                  ),
                 ),
               );
             },
@@ -82,31 +86,16 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'First Name'),
-              ),
-              TextField(
-                controller: _lastNameController,
-                decoration: InputDecoration(labelText: 'Last Name'),
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-              ),
+              _buildTextField('Email', _emailController),
+              _buildTextField('First Name', _firstNameController),
+              _buildTextField('Last Name', _lastNameController),
+              _buildTextField('Password', _passwordController),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                _emailController.clear();
-                _firstNameController.clear();
-                _lastNameController.clear();
-                _passwordController.clear();
+                _clearTextFields();
                 Navigator.pop(context);
               },
               child: Text('Cancel'),
@@ -114,10 +103,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
             TextButton(
               onPressed: () {
                 _addUser();
-                _emailController.clear();
-                _firstNameController.clear();
-                _lastNameController.clear();
-                _passwordController.clear();
+                _clearTextFields();
                 Navigator.pop(context);
               },
               child: Text('Add'),
@@ -126,6 +112,26 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
         );
       },
     );
+  }
+
+  Widget _buildTextField(String labelText, TextEditingController controller) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: labelText,
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  void _clearTextFields() {
+    _emailController.clear();
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _passwordController.clear();
   }
 
   void _addUser() {

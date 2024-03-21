@@ -11,7 +11,18 @@ class AnalyticsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(childKey),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(childKey),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                // Implement refresh functionality here
+              },
+            ),
+          ],
+        ),
       ),
       body: FutureBuilder<DataSnapshot>(
         future: FirebaseDatabase.instance.reference().child(childKey).once().then((event) => event.snapshot),
@@ -56,7 +67,42 @@ class AnalyticsPage extends StatelessWidget {
                   aspectRatio: 1.5, // Adjust the aspect ratio as needed
                   child: GlucoseGraph(glucoseData),
                 ),
-                // Add other widgets below if needed
+                SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+'Glucose: ${((glucoseData.last['glucose'] as double) * 800).toStringAsFixed(2)}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        'REF: 80 - 120 mg/dl',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Bluetooth Status: Connected',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Implement connect/disconnect functionality here
+                        },
+                        child: Text('DISCONNECT'),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             );
           }
