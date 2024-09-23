@@ -32,18 +32,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "charts_common",
-      "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/charts_common-0.12.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "charts_flutter",
-      "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/charts_flutter-0.12.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "clock",
       "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/clock-1.1.1",
       "packageUri": "lib/",
@@ -200,12 +188,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "intl",
-      "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/intl-0.17.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "js",
       "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/js-0.6.7",
       "packageUri": "lib/",
@@ -234,12 +216,6 @@
       "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/lints-4.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.1"
-    },
-    {
-      "name": "logging",
-      "rootUri": "file:///Users/eddiephillips/.pub-cache/hosted/pub.dev/logging-1.2.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
     },
     {
       "name": "matcher",
@@ -434,7 +410,7 @@
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2024-08-29T14:07:00.944811Z",
+  "generated": "2024-08-29T14:59:17.495572Z",
   "generator": "pub",
   "generatorVersion": "3.5.1",
   "flutterRoot": "file:///opt/homebrew/Caskroom/flutter/3.24.1/flutter",

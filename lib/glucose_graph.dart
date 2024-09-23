@@ -26,15 +26,14 @@ class GlucoseGraph extends StatelessWidget {
     double maxY = glucoseValues.reduce(math.max) + stddev;
 
     // Convert unformatted spots to Map<String, double>
-unformattedSpots.forEach((element) {
-  double timeInSeconds = _parseTime(element['time'].toString());
-  Map<String, double> convertedMap = {
-    'time': timeInSeconds,
-    'glucose': double.parse(element['glucose'].toString()),
-  };
-  spots.add(convertedMap);
-});
-
+    unformattedSpots.forEach((element) {
+      double timeInSeconds = _parseTime(element['time'].toString());
+      Map<String, double> convertedMap = {
+        'time': timeInSeconds,
+        'glucose': double.parse(element['glucose'].toString()),
+      };
+      spots.add(convertedMap);
+    });
 
     // Sort spots by time
     spots.sort((a, b) => a['time']!.compareTo(b['time']!));
@@ -94,35 +93,44 @@ unformattedSpots.forEach((element) {
                 );
               },
             ),
-            titlesData: FlTitlesData(
-              show: true,
-              bottomTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 30,
-                interval: interval > 0 ? interval : 1,
-                getTextStyles: (context, value) => const TextStyle(color: Colors.black, fontSize: 12), // Customize text style
-                getTitles: (value) {
-                  if (displayInHours) {
-                    return '${(value / 3600).toInt()} h';
-                  } else if (displayInMinutes) {
-                    return '${(value / 60).toInt()} min';
-                  } else {
-                    return '${value.toInt()} s';
-                  }
-                },
-                margin: 8,
-              ),
-              leftTitles: SideTitles(
-                showTitles: true,
-                interval: yInterval,
-                getTextStyles: (context, value) => const TextStyle(color: Colors.black, fontSize: 12), // Customize text style
-                getTitles: (value) {
-                  return '${value.toStringAsFixed(3)} V'; // Customize y-axis labels
-                },
-                reservedSize: 42,
-                margin: 12,
-              ),
-            ),
+            // titlesData: FlTitlesData(
+            //   bottomTitles: AxisTitles(
+            //     showTitles: true,
+            //     reservedSize: 30,
+            //     interval: interval > 0 ? interval : 1,
+            //     getTitlesWidget: (value, meta) {
+            //       String text;
+            //       if (displayInHours) {
+            //         text = '${(value / 3600).toInt()} h';
+            //       } else if (displayInMinutes) {
+            //         text = '${(value / 60).toInt()} min';
+            //       } else {
+            //         text = '${value.toInt()} s';
+            //       }
+            //       return SideTitleWidget(
+            //         axisSide: meta.axisSide,
+            //         child: Text(
+            //           text,
+            //           style: const TextStyle(color: Colors.black, fontSize: 12), // Customize text style
+            //         ),
+            //       );
+            //     },
+            //   ),
+            //   leftTitles: AxisTitles(
+            //     showTitles: true,
+            //     interval: yInterval,
+            //     getTitlesWidget: (value, meta) {
+            //       return SideTitleWidget(
+            //         axisSide: meta.axisSide,
+            //         child: Text(
+            //           '${value.toStringAsFixed(3)} V', // Customize y-axis labels
+            //           style: const TextStyle(color: Colors.black, fontSize: 12), // Customize text style
+            //         ),
+            //       );
+            //     },
+            //     reservedSize: 42,
+            //   ),
+            // ),
             borderData: FlBorderData(
               show: true,
               border: Border.all(color: Colors.grey[300]!),
@@ -135,10 +143,7 @@ unformattedSpots.forEach((element) {
               LineChartBarData(
                 spots: flSpots,
                 isCurved: true,
-                colors: [
-                  Colors.cyan,
-                  Colors.blue,
-                ],
+                color: Colors.cyan, // Adjusted
                 barWidth: 5,
                 isStrokeCapRound: true,
                 belowBarData: BarAreaData(
@@ -152,22 +157,18 @@ unformattedSpots.forEach((element) {
     );
   }
 
-// Function to parse time string into seconds
-double _parseTime(String timeString) {
-  List<String> parts = timeString.split(':');
-  if (parts.length == 3) {
-    int hours = int.parse(parts[0]);
-    int minutes = int.parse(parts[1]);
-    double seconds = double.parse(parts[2]);
-    return hours * 3600 + minutes * 60 + seconds;
-  } else {
-    // Handle invalid time format
-    print('Invalid time format: $timeString');
-    return 0; // Return a default value or handle the error as needed
+  // Function to parse time string into seconds
+  double _parseTime(String timeString) {
+    List<String> parts = timeString.split(':');
+    if (parts.length == 3) {
+      int hours = int.parse(parts[0]);
+      int minutes = int.parse(parts[1]);
+      double seconds = double.parse(parts[2]);
+      return hours * 3600 + minutes * 60 + seconds;
+    } else {
+      // Handle invalid time format
+      print('Invalid time format: $timeString');
+      return 0; // Return a default value or handle the error as needed
+    }
   }
-}
-
-
-
-
 }
