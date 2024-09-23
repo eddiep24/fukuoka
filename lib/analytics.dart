@@ -1,6 +1,6 @@
-// analytics.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'dart:math'; // For standard deviation calculation
 import 'glucose_graph.dart';
 
 class AnalyticsPage extends StatefulWidget {
@@ -15,24 +15,48 @@ class AnalyticsPage extends StatefulWidget {
 class _AnalyticsPageState extends State<AnalyticsPage> {
   late DataSnapshot snapshot;
 
+  // Parse timestamps in the format HH:MM:SS
+  DateTime parseTimestamp(String timestamp) {
+    List<String> parts = timestamp.split(':');
+    if (parts.length == 3) {
+      int hours = int.parse(parts[0]);
+      int minutes = int.parse(parts[1]);
+      int seconds = int.parse(parts[2]);
+      return DateTime(1970, 1, 1, hours, minutes, seconds);
+    } else {
+      print('Invalid timestamp format: $timestamp');
+      return DateTime.now();
+    }
+  }
+
+  // Calculate mean of glucose values
+  double calculateMean(List<double> values) {
+    return values.reduce((a, b) => a + b) / values.length;
+  }
+
+  // Calculate median of glucose values
+  double calculateMedian(List<double> values) {
+    List<double> sortedValues = List.from(values)..sort();
+    int middle = sortedValues.length ~/ 2;
+
+    if (sortedValues.length % 2 == 1) {
+      return sortedValues[middle];
+    } else {
+      return (sortedValues[middle - 1] + sortedValues[middle]) / 2.0;
+    }
+  }
+
+  // Calculate standard deviation
+  double calculateStandardDeviation(List<double> values, double mean) {
+    double sumOfSquaredDifferences = values
+        .map((value) => pow(value - mean, 2).toDouble())
+        .reduce((a, b) => a + b);
+
+    return sqrt(sumOfSquaredDifferences / values.length);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Parse timestamps in the format HH:MM:SS
-    DateTime parseTimestamp(String timestamp) {
-      List<String> parts = timestamp.split(':');
-      if (parts.length == 3) {
-        int hours = int.parse(parts[0]);
-        int minutes = int.parse(parts[1]);
-        int seconds = int.parse(parts[2]);
-        return DateTime(1970, 1, 1, hours, minutes, seconds);
-      } else {
-        // Handle invalid timestamp format
-        print('Invalid timestamp format: $timestamp');
-        // Return a default value or handle the error as needed
-        return DateTime.now(); // Returning current time as default
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -44,12 +68,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               onPressed: () {
                 // Fetch latest data from Firebase Database
                 FirebaseDatabase.instance.reference().child(widget.childKey).once().then((event) {
-                  // Update UI with the latest data
                   setState(() {
                     snapshot = event.snapshot;
                   });
                 }).catchError((error) {
-                  // Handle error if any
                   print("Error fetching data: $error");
                 });
               },
@@ -79,81 +101,74 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
             // Extract glucose data from your fetched data
             List<Map<String, dynamic>> glucoseData = [];
+            List<Map<String, dynamic>> predictedData = [];
 
             // Parse timestamps and group data by date
-            Map<String, List<Map<String, dynamic>>> groupedData = {};
-
             data.entries.forEach((entry) {
-              DateTime timestamp = parseTimestamp(entry.key); // Parse timestamp using custom function
-              String dateKey = '${timestamp.year}-${timestamp.month}-${timestamp.day}';
-
-              if (!groupedData.containsKey(dateKey)) {
-                groupedData[dateKey] = [];
-              }
-
-              groupedData[dateKey]!.add({'time': entry.key, 'glucose': entry.value['voltage']});
+              String timestampStr = entry.key.toString(); // Convert key to String
+              DateTime timestamp = parseTimestamp(timestampStr);
+              glucoseData.add({'time': timestampStr, 'glucose': entry.value['voltage']});
             });
 
-            // Flatten grouped data for plotting
-            groupedData.forEach((date, dataList) {
-              glucoseData.addAll(dataList);
-            });
+            // Extract only glucose values for analysis
+            List<double> glucoseValues = glucoseData.map((entry) => entry['glucose'] as double).toList();
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Voltage (V) vs Time(s)',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            if (glucoseValues.isNotEmpty) {
+              // Calculate statistics
+              double mean = calculateMean(glucoseValues);
+              double median = calculateMedian(glucoseValues);
+              double stdDev = calculateStandardDeviation(glucoseValues, mean);
+              double minGlucose = glucoseValues.reduce(min);
+              double maxGlucose = glucoseValues.reduce(max);
+              double range = maxGlucose - minGlucose;
+
+              // Get the last value from glucoseData
+              var lastValue = glucoseData.last;
+
+              // Add predictions
+              String lastTime = lastValue['time'] as String;
+              List<String> timeParts = lastTime.split(':');
+              int lastSeconds = int.parse(timeParts[0]) * 3600 + int.parse(timeParts[1]) * 60 + int.parse(timeParts[2]);
+              
+              String nextTime1 = '${(lastSeconds + 60) ~/ 3600}:${((lastSeconds + 60) % 3600) ~/ 60}:${(lastSeconds + 60) % 60}';
+              String nextTime2 = '${(lastSeconds + 120) ~/ 3600}:${((lastSeconds + 120) % 3600) ~/ 60}:${(lastSeconds + 120) % 60}';
+
+              predictedData.add({'time': nextTime1, 'glucose': lastValue['glucose']});
+              predictedData.add({'time': nextTime2, 'glucose': lastValue['glucose']});
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Voltage (V) vs Time(s)',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-                AspectRatio(
-                  aspectRatio: 1.5, // Adjust the aspect ratio as needed
-                  child: GlucoseGraph(glucoseData),
-                ),
-                SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Glucose: ${((glucoseData.last['glucose'] as double) * 800).toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'REF: 80 - 120 mg/dl',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
+                  AspectRatio(
+                    aspectRatio: 1.5,
+                    child: GlucoseGraph(glucoseData, predictedData),
                   ),
-                ),
-                SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Bluetooth Status: Connected',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Implement connect/disconnect functionality here
-                        },
-                        child: Text('DISCONNECT'),
-                      ),
-                    ],
+                  SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Glucose: ${((glucoseData.last['glucose'] as double) * 800).toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+                        Text('Mean: ${mean.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+                        Text('Median: ${median.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+                        Text('Range: ${range.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+                        Text('Standard Deviation: ${stdDev.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            );
+                ],
+              );
+            } else {
+              return Center(child: Text('No glucose data available.'));
+            }
           }
         },
       ),

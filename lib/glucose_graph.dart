@@ -4,8 +4,10 @@ import 'dart:math' as math;
 
 class GlucoseGraph extends StatelessWidget {
   final List<Map<String, dynamic>> unformattedSpots;
+  final List<Map<String, dynamic>> predictedData;
 
-  GlucoseGraph(this.unformattedSpots);
+  GlucoseGraph(this.unformattedSpots, this.predictedData);
+  // GlucoseGraph(this.unformattedSpots);
 
   @override
   Widget build(BuildContext context) {
