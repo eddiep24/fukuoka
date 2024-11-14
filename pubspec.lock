@@ -240,6 +240,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.19.0"
   js:
     dependency: transitive
     description:
@@ -304,6 +312,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.0"
+  ml_linalg:
+    dependency: "direct main"
+    description:
+      name: ml_linalg
+      sha256: abbbd506dc894f8b0394cf5c5d45aab45b7e2a89b86bba9c9b5b8a412b4bec5d
+      url: "https://pub.dev"
+    source: hosted
+    version: "13.12.6"
   path:
     dependency: transitive
     description:
@@ -400,6 +416,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.2"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -437,6 +461,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  syncfusion_flutter_charts:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_charts
+      sha256: e97025be6a68d358463dcf0a83b3c600c52e14574c754b331aac5d1cbb86c759
+      url: "https://pub.dev"
+    source: hosted
+    version: "27.1.58"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      sha256: "31d2ddf410ee41abb3ecf85b7b6e8e1563307ad52ee784ddd91337e30280f715"
+      url: "https://pub.dev"
+    source: hosted
+    version: "27.1.58"
   term_glyph:
     dependency: transitive
     description:
@@ -501,6 +541,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.2.5"
+  volume_controller:
+    dependency: "direct main"
+    description:
+      name: volume_controller
+      sha256: c71d4c62631305df63b72da79089e078af2659649301807fa746088f365cb48e
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.8"
   web:
     dependency: transitive
     description:

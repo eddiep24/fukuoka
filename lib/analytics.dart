@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:math';
 import 'glucose_graph.dart';
+import 'glucose_prediction_service.dart';
+
 
 class AnalyticsPage extends StatefulWidget {
   final String childKey;
@@ -14,20 +16,6 @@ class AnalyticsPage extends StatefulWidget {
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
   late DataSnapshot snapshot;
-
-  // Parse timestamps in the format HH:MM:SS
-  DateTime parseTimestamp(String timestamp) {
-    List<String> parts = timestamp.split(':');
-    if (parts.length == 3) {
-      int hours = int.parse(parts[0]);
-      int minutes = int.parse(parts[1]);
-      int seconds = int.parse(parts[2]);
-      return DateTime(1970, 1, 1, hours, minutes, seconds);
-    } else {
-      print('Invalid timestamp format: $timestamp');
-      return DateTime.now();
-    }
-  }
 
   // Calculate mean of glucose values
   double calculateMean(List<double> values) {
@@ -55,7 +43,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return sqrt(sumOfSquaredDifferences / values.length);
   }
 
-  // Calculate coefficient of variation
   double calculateCV(double standardDeviation, double mean) {
     return (standardDeviation / mean) * 100;
   }
@@ -64,8 +51,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   List<double> calculateRateOfChange(List<Map<String, dynamic>> data) {
     List<double> rates = [];
     for (int i = 1; i < data.length; i++) {
-      DateTime time1 = parseTimestamp(data[i - 1]['time']);
-      DateTime time2 = parseTimestamp(data[i]['time']);
+      DateTime time1 = GlucosePredictionService.parseTimestamp(data[i - 1]['time']);
+      DateTime time2 = GlucosePredictionService.parseTimestamp(data[i]['time']);
       double glucose1 = data[i - 1]['glucose'];
       double glucose2 = data[i]['glucose'];
       
@@ -170,14 +157,23 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             }
 
             List<Map<String, dynamic>> glucoseData = [];
-            List<Map<String, dynamic>> predictedData = [];
-
+            
             data.entries.forEach((entry) {
               String timestampStr = entry.key.toString();
-              DateTime timestamp = parseTimestamp(timestampStr);
+              DateTime timestamp = GlucosePredictionService.parseTimestamp(timestampStr);
               double voltage = (entry.value['voltage'] as num).toDouble();
               glucoseData.add({'time': timestampStr, 'glucose': voltage});
             });
+
+            // Sort glucoseData by time
+            glucoseData.sort((a, b) => 
+              GlucosePredictionService.parseTimestamp(a['time'])
+                .compareTo(GlucosePredictionService.parseTimestamp(b['time'])));
+
+            // Calculate predictions using the service
+            List<Map<String, dynamic>> predictedData = 
+                GlucosePredictionService.calculatePredictions(glucoseData);
+
 
             List<double> glucoseValues =
                 glucoseData.map((entry) => entry['glucose'] as double).toList();
@@ -193,24 +189,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               double minGlucose = glucoseValues.reduce(min);
               double maxGlucose = glucoseValues.reduce(max);
               double range = maxGlucose - minGlucose;
-              
-              // Calculate predictions (same as before)
-              var lastValue = glucoseData.last;
-              String lastTime = lastValue['time'] as String;
-              List<String> timeParts = lastTime.split(':');
-              int lastSeconds = int.parse(timeParts[0]) * 3600 +
-                  int.parse(timeParts[1]) * 60 +
-                  int.parse(timeParts[2]);
-
-              String nextTime1 =
-                  '${(lastSeconds + 60) ~/ 3600}:${((lastSeconds + 60) % 3600) ~/ 60}:${(lastSeconds + 60) % 60}';
-              String nextTime2 =
-                  '${(lastSeconds + 120) ~/ 3600}:${((lastSeconds + 120) % 3600) ~/ 60}:${(lastSeconds + 120) % 60}';
-
-              predictedData
-                  .add({'time': nextTime1, 'glucose': lastValue['glucose']});
-              predictedData
-                  .add({'time': nextTime2, 'glucose': lastValue['glucose']});
 
               return SingleChildScrollView(
                 child: Column(
